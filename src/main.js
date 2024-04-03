@@ -13,31 +13,25 @@ document.body.appendChild(renderer.domElement);
 
 camera.position.set(0, 0, 0);
 
+const proportions = [78/100, 21/100, 1/100];
+const atoms = [proportions[0] * 1000, proportions[1] * 1000, proportions[2] * 1000]
+
 //Planetes
-
-const earth = new three.SphereGeometry(8,32,32)
-const sun = new three.SphereGeometry(16,32,32)
-const moon = new three.SphereGeometry(4,32,32)
-
-//Texture
-const background_texture = new three.TextureLoader().load('/8k_stars_milky_way.jpg');
-scene.background = background_texture;
-
-const earth_texture = new three.TextureLoader().load('/8k_earth.jpg'); 
-const sun_texture = new three.TextureLoader().load('/8k_sun.jpg'); 
-const moon_texture = new three.TextureLoader().load('/8k_moon.jpg'); 
+let rayon = 25;
+const gaz_bubble = new three.SphereGeometry(rayon,50,50);
+const autre = new three.SphereGeometry(0.2,32,32)
+const dioxyde_carbone = new three.SphereGeometry(0.2,32,32)
 
 //Material
-const earth_material = new three.MeshBasicMaterial({map: earth_texture});
-const sun_material = new three.MeshBasicMaterial({map: sun_texture});
-const moon_material = new three.MeshBasicMaterial({map: moon_texture});
+const gaz_bubble_material = new three.MeshBasicMaterial({color: '#faf2f8', transparent: true})
+gaz_bubble_material.opacity = 0.2;
+const autre_material = new three.MeshBasicMaterial({color: '11600001'});
+const dioxyde_carbone_material = new three.MeshBasicMaterial({color: '10001'});
 
 //Meshes
-const earth_mesh = new three.Mesh(earth, earth_material);
-const sun_mesh = new three.Mesh(sun, sun_material);
-const moon_mesh = new three.Mesh(moon, moon_material);
-
-//Position
+const gaz_bubble_mesh = new three.Mesh(gaz_bubble, gaz_bubble_material);
+const autre_mesh = new three.Mesh(autre, autre_material);
+const dioxyde_carbone_mesh = new three.Mesh(dioxyde_carbone, dioxyde_carbone_material);
 
 //Controls
 const controls = new OrbitControls(camera, renderer.domElement)
@@ -45,38 +39,64 @@ controls.update();
 
 //Help
 var axesHelper = new three.AxesHelper( 5 );
-scene.add(earth_mesh, sun_mesh, moon_mesh, axesHelper);
-camera.position.z = 50;
+camera.position.z = 100;
 
-let startTime = Date.now();
+//On génère les particules :
+scene.add(gaz_bubble_mesh);
 
+let offset = rayon; //todo: Evite aux atomes de fusionner avec la gaz_bubble (décalage latérale du rayon);
+let azote_atoms = [];
+let oxygene_atoms = [];
+
+for(let i = 0; i < atoms[0]; i++){
+    const azote = new three.SphereGeometry(0.2,32,32)
+    const azote_material = new three.MeshBasicMaterial({color: '#0400f7'});
+    const azote_mesh = new three.Mesh(azote, azote_material);
+    let saved_coordinates = azote_mesh.position.set(Math.random() * (rayon - (-rayon)) + (-rayon), Math.random() * (rayon - (-rayon)) + (-rayon), Math.random() * (rayon - (-rayon)) + (-rayon))
+    
+    while(!(saved_coordinates.x**2 + saved_coordinates.y**2 + saved_coordinates.z**2 < rayon**2)){
+        azote_mesh.position.set(Math.random() * (rayon - (-rayon)) + (-rayon), Math.random() * (rayon - (-rayon)) + (-rayon), Math.random() * (rayon - (-rayon)) + (-rayon))
+    }
+    azote_atoms.push(azote_mesh);
+    scene.add(azote_mesh);
+}
+
+for(let i = 0; i < atoms[1]; i++){
+    const oxygene = new three.SphereGeometry(0.2,32,32)
+    const oxygene_material = new three.MeshBasicMaterial({color: '#ff0000'});
+    const oxygene_mesh = new three.Mesh(oxygene, oxygene_material);
+    let saved_coordinates = oxygene_mesh.position.set(Math.random() * (rayon - (-rayon)) + (-rayon), Math.random() * (rayon - (-rayon)) + (-rayon), Math.random() * (rayon - (-rayon)) + (-rayon))
+
+    while(!(saved_coordinates.x**2 + saved_coordinates.y**2 + saved_coordinates.z**2 < rayon**2)){
+        oxygene_mesh.position.set(Math.random() * (rayon - (-rayon)) + (-rayon), Math.random() * (rayon - (-rayon)) + (-rayon), Math.random() * (rayon - (-rayon)) + (-rayon))
+    }
+    oxygene_atoms.push(oxygene_mesh);
+    scene.add(oxygene_mesh)
+}
+
+console.log("Voici les arrays :");
+console.log(azote_atoms);
+console.log(oxygene_atoms);
 
 //Rendu de la scène : 
 function animate() {
 	requestAnimationFrame( animate );
 	renderer.render( scene, camera );
 
-    let currentTime = Date.now();
-    let timeElapsed = (currentTime - startTime) / 1000;
-    
-    let angle = (2 * Math.PI * 365 / 1500) * timeElapsed;
-    let moon_angle = (2 * Math.PI * 365 / 270) * timeElapsed;
+    //Animation des atomes 
+    let coordinates_increment = [-0.01, 0.01];
 
-    earth_mesh.rotation.x += 0.001;
-    earth_mesh.rotation.y += 0.001;
+    // azote_atoms.forEach(element => {
+    //     element.position.x**2 + element.position.y**2 + element.position.z**2 > rayon**2 ? element.position.x += coordinates_increment[Math.random * coordinates_increment.length] / 1000 : element.position.set(Math.random() * (rayon - (-rayon)) + (-rayon), Math.random() * (rayon - (-rayon)) + (-rayon), Math.random() * (rayon - (-rayon)) + (-rayon));
+    //     element.position.y**2 + element.position.y**2 + element.position.z**2 > rayon**2 ? element.position.y += coordinates_increment[Math.random * coordinates_increment.length] / 1000 : element.position.set(Math.random() * (rayon - (-rayon)) + (-rayon), Math.random() * (rayon - (-rayon)) + (-rayon), Math.random() * (rayon - (-rayon)) + (-rayon));
+    //     element.position.z**2 + element.position.y**2 + element.position.z**2 > rayon**2 ? element.position.z += coordinates_increment[Math.random * coordinates_increment.length] / 1000 : element.position.set(Math.random() * (rayon - (-rayon)) + (-rayon), Math.random() * (rayon - (-rayon)) + (-rayon), Math.random() * (rayon - (-rayon)) + (-rayon));
 
-    earth_mesh.position.x = Math.cos(angle) * 50;
-    earth_mesh.position.y = Math.sin(angle) * 50;
+        
 
-    moon_mesh.position.x = earth_mesh.position.x + Math.cos(moon_angle) * 25;
-    moon_mesh.position.y = earth_mesh.position.y + Math.sin(moon_angle) * 25;
-
-
-
-
-    
-
-
+    // });
+        
+        
 
 }
+
 animate();
