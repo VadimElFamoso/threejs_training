@@ -14,5 +14,8 @@ export default {
         outDir: '../dist',
         emptyOutDir: true,
         sourcemap: true
+    },
+    optimizeDeps:{
+        exclude: ['lil-gui.js']
     }
 }
