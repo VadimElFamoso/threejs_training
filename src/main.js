@@ -78,19 +78,19 @@ function dioxyde_Carbone_add(presence){
         const dioxyde_carbone = new three.SphereGeometry(0.2,32,32)
         const dioxyde_carbone_material = new three.MeshBasicMaterial({color: '#454647'});
         const dioxyde_carbone_mesh = new three.Mesh(dioxyde_carbone, dioxyde_carbone_material);
-        let saved_coordinates =dioxyde_carbone_mesh.position.set(Math.random() * (rayon - (-rayon)) + (-rayon), Math.random() * (rayon - (-rayon)) + (-rayon), Math.random() * (rayon - (-rayon)) + (-rayon))
+        let saved_coordinates = dioxyde_carbone_mesh.position.set(Math.random() * (rayon - (-rayon)) + (-rayon), Math.random() * (rayon - (-rayon)) + (-rayon), Math.random() * (rayon - (-rayon)) + (-rayon))
     
         while(!(saved_coordinates.x**2 + saved_coordinates.y**2 + saved_coordinates.z**2 < rayon**2)){
             dioxyde_carbone_mesh.position.set(Math.random() * (rayon - (-rayon)) + (-rayon), Math.random() * (rayon - (-rayon)) + (-rayon), Math.random() * (rayon - (-rayon)) + (-rayon))
         }
-        //On vide pour être sûr :
-        dioxyde_carbone_atoms = [];
     
         dioxyde_carbone_atoms.push(dioxyde_carbone_mesh);
         scene.add(dioxyde_carbone_mesh)
 
     }
 }
+
+dioxyde_Carbone_add(0.20);
 
 let gui_details = {
     azote: true,
@@ -100,8 +100,6 @@ let gui_details = {
     taux_co2: 0.10,
     function_add: 'taux_co2',
 }
-
-dioxyde_Carbone_add(0.20);
 
 const gui = new GUI();
 gui.add(gui_details, 'taux_co2', 0.05, 0.20).onChange(value => {
@@ -139,8 +137,11 @@ for(let i = 0; i < atoms_distribution[2]; i++){
 //     }
 // }
 
-// collisionDetection();
+//Génération du vecteur random :
+function getRandomVector(min, max){
+    console.log(new three.Vector3(Math.random() * (max - min) + min, Math.random() * (max - min) + min, Math.random() * (max - min) + min)); 
 
+}
 
 //Rendu de la scène : 
 function animate() {
@@ -149,34 +150,28 @@ function animate() {
 
     let decelerator = 20/100;
 
-    //Todo: Factoriser le code
     azote_atoms.forEach(atom => {
-        const randomVec = new three.Vector3();
-        randomVec.randomDirection();
-        atom.position.x**2 + atom.position.y**2 + atom.position.z**2 < rayon**2 ? atom.position.set(atom.position.x += randomVec.x * decelerator, atom.position.y += randomVec.y * decelerator, atom.position.z += randomVec.z * decelerator) : atom.position.set(0,0,0);
+        getRandomVector(10,25);
+        atom.position.x**2 + atom.position.y**2 + atom.position.z**2 < rayon**2 ? atom.position.set(atom.position.x += randomVec.x * decelerator, atom.position.y += randomVec.y * decelerator, atom.position.z += randomVec.z * decelerator) : atom.position.set(atom.position.x += randomVec.negate().x * decelerator, atom.position.y += randomVec.negate().y * decelerator, atom.position.z += randomVec.negate().z * decelerator);
     })
 
     oxygene_atoms.forEach(atom => {
-        const randomVec = new three.Vector3();
+        getRandomVector(10,25);
         randomVec.randomDirection();
-        atom.position.x**2 + atom.position.y**2 + atom.position.z**2 < rayon**2 ? atom.position.set(atom.position.x += randomVec.x * decelerator, atom.position.y += randomVec.y * decelerator, atom.position.z += randomVec.z * decelerator) : atom.position.set(0,0,0);
+        atom.position.x**2 + atom.position.y**2 + atom.position.z**2 < rayon**2 ? atom.position.set(atom.position.x += randomVec.x * decelerator, atom.position.y += randomVec.y * decelerator, atom.position.z += randomVec.z * decelerator) : atom.position.set(randomVec.negate())
     })
 
-    //Todo: Attirer les molécules vers 
     dioxyde_carbone_atoms.forEach(atom => {
-        const randomVec = new three.Vector3();
+        getRandomVector(10,25);
         randomVec.randomDirection();
-        atom.position.x**2 + atom.position.y**2 + atom.position.z**2 < rayon**2 ? atom.position.set(atom.position.x += randomVec.x * decelerator, atom.position.y += randomVec.y * decelerator, atom.position.z += randomVec.z * decelerator) : atom.position.set(atom.position.x += randomVec.x * decelerator / 5, atom.position.y += randomVec.y * decelerator / 5, atom.position.z += randomVec.z * decelerator / 5);
+        atom.position.x**2 + atom.position.y**2 + atom.position.z**2 < rayon**2 ? atom.position.set(atom.position.x += randomVec.x * decelerator, atom.position.y += randomVec.y * decelerator, atom.position.z += randomVec.z * decelerator) : atom.position.set(randomVec.negate()) //atom.position.set(atom.position.x += randomVec.x * decelerator / 5, atom.position.y += randomVec.y * decelerator / 5, atom.position.z += randomVec.z * decelerator / 5);
     })
 
     divers_atoms.forEach(atom => {
-        const randomVec = new three.Vector3();
+        getRandomVector(10,25);
         randomVec.randomDirection();
-        atom.position.x**2 + atom.position.y**2 + atom.position.z**2 < rayon**2 ? atom.position.set(atom.position.x += randomVec.x * decelerator, atom.position.y += randomVec.y * decelerator, atom.position.z += randomVec.z * decelerator) : atom.position.set(0,0,0);
+        atom.position.x**2 + atom.position.y**2 + atom.position.z**2 < rayon**2 ? atom.position.set(atom.position.x += randomVec.x * decelerator, atom.position.y += randomVec.y * decelerator, atom.position.z += randomVec.z * decelerator) : atom.position.set(randomVec.negate())
     })
-        
-        
-
 }
 
 animate();
