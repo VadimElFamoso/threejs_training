@@ -2,7 +2,10 @@ console.log("test");
 
 import GUI from 'lil-gui';
 import * as three from 'three';
+import { Vector3 } from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { MathUtils } from 'three';
+import { randFloat, randInt } from 'three/src/math/MathUtils.js';
 
 const scene = new three.Scene();
 const camera = new three.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -55,6 +58,7 @@ for(let i = 0; i < atoms_distribution[0]; i++){
         azote_mesh.position.set(Math.random() * (rayon - (-rayon)) + (-rayon), Math.random() * (rayon - (-rayon)) + (-rayon), Math.random() * (rayon - (-rayon)) + (-rayon))
     }
     azote_atoms.push(azote_mesh);
+
     scene.add(azote_mesh);
 }
 
@@ -69,7 +73,9 @@ for(let i = 0; i < atoms_distribution[1]; i++){
         oxygene_mesh.position.set(Math.random() * (rayon - (-rayon)) + (-rayon), Math.random() * (rayon - (-rayon)) + (-rayon), Math.random() * (rayon - (-rayon)) + (-rayon))
     }
     oxygene_atoms.push(oxygene_mesh);
-    scene.add(oxygene_mesh)
+
+    scene.add(oxygene_mesh);
+
 }
 
 //Dioxyde de carbone :
@@ -85,9 +91,27 @@ function dioxyde_Carbone_add(presence){
         }
     
         dioxyde_carbone_atoms.push(dioxyde_carbone_mesh);
-        scene.add(dioxyde_carbone_mesh)
+
+        scene.add(dioxyde_carbone_mesh);
+
 
     }
+}
+
+// //Gaz divers :
+for(let i = 0; i < atoms_distribution[2]; i++){
+    const divers = new three.SphereGeometry(0.2,32,32)
+    const divers_material = new three.MeshBasicMaterial({color: '#e803fc'});
+    const divers_mesh = new three.Mesh(divers, divers_material);
+    let saved_coordinates = divers_mesh.position.set(Math.random() * (rayon - (-rayon)) + (-rayon), Math.random() * (rayon - (-rayon)) + (-rayon), Math.random() * (rayon - (-rayon)) + (-rayon))
+
+    //On positionne les atomes
+    while(!(saved_coordinates.x**2 + saved_coordinates.y**2 + saved_coordinates.z**2 < rayon**2)){
+        divers_mesh.position.set(Math.random() * (rayon - (-rayon)) + (-rayon), Math.random() * (rayon - (-rayon)) + (-rayon), Math.random() * (rayon - (-rayon)) + (-rayon))
+    }
+    divers_atoms.push(divers_mesh);
+
+    scene.add(divers_mesh);
 }
 
 dioxyde_Carbone_add(0.20);
@@ -105,73 +129,57 @@ const gui = new GUI();
 gui.add(gui_details, 'taux_co2', 0.05, 0.20).onChange(value => {
     dioxyde_Carbone_add(value);
 })
-gui.add(gui_details, 'function');
+// gui.add(gui_details, 'function');
 gui.add(gui_details, 'azote');
 gui.add(gui_details, 'oxygene');
 gui.add(gui_details, 'dioxyde_carbone');
 gui.add(gui_details, 'autre');
 
+let decelerator = 1/20;
 
-// //Gaz divers :
-for(let i = 0; i < atoms_distribution[2]; i++){
-    const divers = new three.SphereGeometry(0.2,32,32)
-    const divers_material = new three.MeshBasicMaterial({color: '#e803fc'});
-    const divers_mesh = new three.Mesh(divers, divers_material);
-    let saved_coordinates = divers_mesh.position.set(Math.random() * (rayon - (-rayon)) + (-rayon), Math.random() * (rayon - (-rayon)) + (-rayon), Math.random() * (rayon - (-rayon)) + (-rayon))
+// Génération du vecteur random :
+function getRandomVector(min, max, atom){
+    let randomVec = new Vector3(randFloat(min,max),randFloat(min,max),randFloat(min,max));
+    return atom.position.add(randomVec);
+}
 
-    while(!(saved_coordinates.x**2 + saved_coordinates.y**2 + saved_coordinates.z**2 < rayon**2)){
-        divers_mesh.position.set(Math.random() * (rayon - (-rayon)) + (-rayon), Math.random() * (rayon - (-rayon)) + (-rayon), Math.random() * (rayon - (-rayon)) + (-rayon))
+function isColliding(atom, rayon){
+    //L'atome entre en collision avec la sphère de gaz :
+    if(atom.position.x**2 + atom.position.y**2 + atom.position.z**2 >= rayon **2){
+        console.log("Collision détectée");
+        return true;
     }
-    divers_atoms.push(divers_mesh);
-    scene.add(divers_mesh)
+    //L'atome n'est pas en collision avec la sphère de gaz :
+    else{
+        return false;
+    }
 }
 
-// Optionnel : système de collision :
-// function collisionDetection(){
-//     let atoms = azote_atoms.concat(oxygene_atoms, dioxyde_carbone_atoms, divers_atoms);
-//     console.log(atoms);
-//     let collision = false;
-//     for(let i = 0; i < atoms.length; i++){
-//         //Les atomes ne sont plsu espacés
-//         // atoms[i].position.x - atoms[i - 1].position.x > -1 && atoms[i].position.x - atoms[i - 1].position.x < 1 || atoms[i].position.y - atoms[i - 1].position.y > -1 && atoms[i].position.y - atoms[i - 1].position.y < 1 || atoms[i].position.z - atoms[i - 1].position.z > -1 && atoms[i].position.z - atoms[i - 1].position.z < 1 < 0.2 ? console.log("Collision detected") : console.log("Aucune collision");
-//     }
-// }
+console.log(azote_atoms);
+console.log(oxygene_atoms);
+console.log(dioxyde_carbone_atoms);
+console.log(divers_atoms);
 
-//Génération du vecteur random :
-function getRandomVector(min, max){
-    console.log(new three.Vector3(Math.random() * (max - min) + min, Math.random() * (max - min) + min, Math.random() * (max - min) + min)); 
+let atoms = Array.from(azote_atoms.concat(oxygene_atoms, dioxyde_carbone_atoms, divers_atoms));
+console.log(atoms);
 
-}
 
 //Rendu de la scène : 
 function animate() {
 	requestAnimationFrame( animate );
 	renderer.render( scene, camera );
 
-    let decelerator = 20/100;
+    atoms.forEach(atom => {
+        if(isColliding(atom, rayon)){
+            getRandomVector(-0.1 * decelerator, 0.1 * decelerator, atom).negate();
+            console.log(`Collision détectée sur ${atom}`); 
+        }
+        else{
+            getRandomVector(-0.1 * decelerator, 0.1 * decelerator, atom);
+        }
+    });
 
-    azote_atoms.forEach(atom => {
-        getRandomVector(10,25);
-        atom.position.x**2 + atom.position.y**2 + atom.position.z**2 < rayon**2 ? atom.position.set(atom.position.x += randomVec.x * decelerator, atom.position.y += randomVec.y * decelerator, atom.position.z += randomVec.z * decelerator) : atom.position.set(atom.position.x += randomVec.negate().x * decelerator, atom.position.y += randomVec.negate().y * decelerator, atom.position.z += randomVec.negate().z * decelerator);
-    })
-
-    oxygene_atoms.forEach(atom => {
-        getRandomVector(10,25);
-        randomVec.randomDirection();
-        atom.position.x**2 + atom.position.y**2 + atom.position.z**2 < rayon**2 ? atom.position.set(atom.position.x += randomVec.x * decelerator, atom.position.y += randomVec.y * decelerator, atom.position.z += randomVec.z * decelerator) : atom.position.set(randomVec.negate())
-    })
-
-    dioxyde_carbone_atoms.forEach(atom => {
-        getRandomVector(10,25);
-        randomVec.randomDirection();
-        atom.position.x**2 + atom.position.y**2 + atom.position.z**2 < rayon**2 ? atom.position.set(atom.position.x += randomVec.x * decelerator, atom.position.y += randomVec.y * decelerator, atom.position.z += randomVec.z * decelerator) : atom.position.set(randomVec.negate()) //atom.position.set(atom.position.x += randomVec.x * decelerator / 5, atom.position.y += randomVec.y * decelerator / 5, atom.position.z += randomVec.z * decelerator / 5);
-    })
-
-    divers_atoms.forEach(atom => {
-        getRandomVector(10,25);
-        randomVec.randomDirection();
-        atom.position.x**2 + atom.position.y**2 + atom.position.z**2 < rayon**2 ? atom.position.set(atom.position.x += randomVec.x * decelerator, atom.position.y += randomVec.y * decelerator, atom.position.z += randomVec.z * decelerator) : atom.position.set(randomVec.negate())
-    })
+   
 }
 
 animate();
